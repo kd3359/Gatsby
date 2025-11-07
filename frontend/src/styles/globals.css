@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Gatsby Theme Global Styles */
+
+@layer base {
+  body {
+    @apply bg-gatsby-black text-white font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  /* Primary Button (Gold) */
+  .btn-primary {
+    @apply bg-gatsby-gold text-gatsby-black font-semibold py-3 px-6 rounded-full hover:bg-gatsby-gold-light transition-all duration-200 active:scale-95;
+  }
+
+  /* Secondary Button (Gray) */
+  .btn-secondary {
+    @apply bg-gatsby-charcoal text-white font-semibold py-3 px-6 rounded-full hover:bg-opacity-80 transition-all duration-200 active:scale-95;
+  }
+
+  /* Card Styling */
+  .card {
+    @apply bg-gatsby-charcoal rounded-2xl p-6 shadow-xl;
+  }
+
+  /* Input Fields */
+  .input-field {
+    @apply bg-gatsby-charcoal border border-gatsby-gray border-opacity-30 rounded-xl px-4 py-3 text-white placeholder-gatsby-gray focus:outline-none focus:border-gatsby-gold transition-colors;
+  }
+
+  /* Swipe Card */
+  .swipe-card {
+    @apply absolute w-full bg-gatsby-charcoal rounded-3xl shadow-2xl overflow-hidden;
+    touch-action: none;
+    user-select: none;
+  }
+
+  /* Match Notification */
+  .match-notification {
+    @apply fixed top-4 left-1/2 transform -translate-x-1/2 bg-gatsby-green text-white px-6 py-4 rounded-2xl shadow-2xl z-50 animate-bounce-in;
+  }
+
+  /* Toast Notification */
+  .toast {
+    @apply fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gatsby-charcoal text-white px-6 py-4 rounded-2xl shadow-xl z-50 animate-fade-in;
+  }
+
+  /* Bottom Navigation */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-gatsby-black border-t border-gatsby-gray border-opacity-20 px-4 py-3 flex justify-around items-center z-40;
+  }
+
+  /* Profile Badge */
+  .profile-badge {
+    @apply inline-flex items-center gap-2 bg-gatsby-charcoal px-3 py-1 rounded-full text-sm;
+  }
+}
+
+@layer utilities {
+  /* Text Gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-gatsby-gold to-gatsby-gold-light bg-clip-text text-transparent;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    background: rgba(26, 31, 58, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Hide Scrollbar */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gatsby-black;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gatsby-gold rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gatsby-gold-light;
+}
+
+/* Prevent text selection on swipe cards */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Loading Spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  border: 3px solid rgba(212, 175, 55, 0.3);
+  border-top-color: #D4AF37;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.8s linear infinite;
+}

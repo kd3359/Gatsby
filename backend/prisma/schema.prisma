@@ -1,0 +1,207 @@
+// Gatsby Dating App - Database Schema
+// Multi-venue, session-based dating platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// VENUE & SESSION MANAGEMENT
+// ============================================
+
+model Venue {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  name      String
+  city      String
+  address   String?
+  latitude  Float?
+  longitude Float?
+  capacity  Int?
+  timezone  String   @default("America/New_York")
+  createdAt DateTime @default(now())
+
+  sessions Session[]
+
+  @@index([uuid])
+  @@map("venues")
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid())
+  venueId    Int
+  eventName  String
+  startTime  DateTime
+  endTime    DateTime
+  status     String   @default("active") // active, ended
+  createdAt  DateTime @default(now())
+
+  venue    Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  users    User[]
+  swipes   Swipe[]
+  matches  Match[]
+  messages Message[]
+  contacts Contact[]
+  qrCodes  QRCode[]
+
+  @@index([uuid])
+  @@index([venueId])
+  @@index([status])
+  @@map("sessions")
+}
+
+// ============================================
+// USER MANAGEMENT
+// ============================================
+
+model User {
+  id              Int      @id @default(autoincrement())
+  uuid            String   @unique @default(uuid())
+  sessionId       Int
+  authProvider    String // instagram, sms, apple
+  providerId      String // instagram_id or phone_number (encrypted)
+  name            String
+  age             Int
+  profilePhotoUrl String?
+  bio             String?
+  vibeTags        Json     @default("[]") // JSON array of strings
+  followerCount   Int?
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  session         Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  swipesGiven     Swipe[]   @relation("SwipesGiven")
+  swipesReceived  Swipe[]   @relation("SwipesReceived")
+  matchesAsUser1  Match[]   @relation("MatchesAsUser1")
+  matchesAsUser2  Match[]   @relation("MatchesAsUser2")
+  messagesSent    Message[] @relation("MessagesSent")
+  messagesReceived Message[] @relation("MessagesReceived")
+  contactsAsUser1 Contact[] @relation("ContactsAsUser1")
+  contactsAsUser2 Contact[] @relation("ContactsAsUser2")
+
+  @@unique([sessionId, providerId])
+  @@index([uuid])
+  @@index([sessionId])
+  @@index([providerId])
+  @@map("users")
+}
+
+// ============================================
+// SWIPE & MATCHING SYSTEM
+// ============================================
+
+model Swipe {
+  id           Int      @id @default(autoincrement())
+  sessionId    Int
+  userId       Int
+  targetUserId Int
+  direction    String // like, pass
+  createdAt    DateTime @default(now())
+
+  session    Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user       User    @relation("SwipesGiven", fields: [userId], references: [id], onDelete: Cascade)
+  targetUser User    @relation("SwipesReceived", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([targetUserId])
+  @@map("swipes")
+}
+
+model Match {
+  id        Int      @id @default(autoincrement())
+  sessionId Int
+  user1Id   Int
+  user2Id   Int
+  matchedAt DateTime @default(now())
+
+  session  Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user1    User      @relation("MatchesAsUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User      @relation("MatchesAsUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages Message[]
+  contacts Contact[]
+
+  @@unique([sessionId, user1Id, user2Id])
+  @@index([sessionId])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@map("matches")
+}
+
+// ============================================
+// MESSAGING SYSTEM
+// ============================================
+
+model Message {
+  id         Int       @id @default(autoincrement())
+  sessionId  Int
+  matchId    Int
+  senderId   Int
+  receiverId Int
+  content    String
+  readAt     DateTime?
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  session  Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  match    Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender   User    @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User    @relation("MessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([matchId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@map("messages")
+}
+
+// ============================================
+// CONTACT EXCHANGE
+// ============================================
+
+model Contact {
+  id              Int      @id @default(autoincrement())
+  sessionId       Int
+  matchId         Int
+  user1Id         Int
+  user2Id         Int
+  user1Phone      String?
+  user1Instagram  String?
+  user2Phone      String?
+  user2Instagram  String?
+  sharedAt        DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  match   Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user1   User    @relation("ContactsAsUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2   User    @relation("ContactsAsUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([matchId])
+  @@map("contacts")
+}
+
+// ============================================
+// QR CODE SYSTEM
+// ============================================
+
+model QRCode {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  sessionId Int
+  location  String? // entrance, bar, dance_floor, etc.
+  scans     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([uuid])
+  @@index([sessionId])
+  @@map("qr_codes")
+}
